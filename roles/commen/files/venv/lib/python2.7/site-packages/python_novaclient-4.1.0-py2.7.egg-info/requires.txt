@@ -1,0 +1,11 @@
+pbr>=1.6
+keystoneauth1>=2.1.0
+iso8601>=0.1.11
+oslo.i18n>=2.1.0
+oslo.serialization>=1.10.0
+oslo.utils>=3.11.0
+PrettyTable<0.8,>=0.7
+requests>=2.10.0
+simplejson>=2.2.0
+six>=1.9.0
+Babel>=2.3.4

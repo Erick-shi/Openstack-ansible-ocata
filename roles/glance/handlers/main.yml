@@ -1,0 +1,6 @@
+---
+- name: restart the glance service
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+    - openstack-glance-api
+    - openstack-glance-registry

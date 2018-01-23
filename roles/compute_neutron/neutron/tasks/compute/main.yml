@@ -1,0 +1,33 @@
+---
+- name: install compute neutron packets
+  yum: name={{ item }} state=latest
+  with_items: [openstack-neutron-ml2,openstack-neutron-openvswitch]
+- name: replace neutron.conf and openvswitch.ini
+  template: 
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: neutron
+    group: neutron
+  with_items:
+    - src: neutron.conf
+      dest: /etc/neutron/neutron.conf
+    - src: ml2_conf.ini
+      dest: /etc/neutron/plugins/ml2/ml2_conf.ini
+    - src: openvswitch_agent.ini 
+      dest: /etc/neutron/plugins/ml2/openvswitch_agent.ini 
+  notify: restart neutron-openvswitch-agent.service
+- name: replace nova.conf
+  template: 
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: nova
+    group: nova
+  with_items:
+    - src: nova.conf
+      dest: /etc/nova/nova.conf
+  notify: restart openstack-nova-compute.service
+- name: ensure neutron-openvswitch-agent.service is up 
+  service: name=neutron-openvswitch-agent.service state=started enabled=yes
+- name: ifup br-tun
+  shell: ip link set dev br-tun up
+  ignore_errors: true

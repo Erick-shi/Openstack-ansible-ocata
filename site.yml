@@ -1,0 +1,43 @@
+#- hosts: controller
+#  tasks: 
+#  - name: copy the venv to one controller node
+#    unarchive: "src=/etc/ansible/roles/commen/files/venv.tar.gz dest=/root mode=755"
+#  - name: chmod a+x /root/venv/bin/python
+#    shell: "chmod a+x /root/venv/bin/python"
+- name: install controller nodes roles
+  hosts: controller
+  vars:
+  environment:
+    glance_user_pass: admin
+    OS_PROJECT_DOMAIN_NAME: Default
+    OS_USER_DOMAIN_NAME: Default
+    OS_PROJECT_NAME: admin
+    OS_USERNAME: admin
+    OS_PASSWORD: admin
+    OS_AUTH_URL: http://controller:35357/v3
+    OS_IDENTITY_API_VERSION: 3
+    OS_IMAGE_API_VERSION: 2
+  any_errors_fatal: true
+  roles:
+#      - { role: commen,tags: commen }
+#      - { role: memcached,tags: memcached }
+      - { role: mariadb,tags: mariadb }
+      - { role: rabbitmq, tags: rabbitmq }
+      - { role: keystone, tags: keystone }
+      - { role: glance, tags: glance }
+      - { role: nova, tags: controller_nova }
+      - { role: controller_neutron, tags: controller_neutron }
+      - { role: dashboard, tags: dashboard }
+#      - { role: cinder, tags: cinder }
+#      - { role: heat, tags: heat }
+- name: install compute nodes roles
+  hosts: compute
+  roles:
+     - { role: commen,tags: commen }
+     - { role: nova_compute, tags: compute_nova }
+     - { role: compute_neutron, tags: nova_neutron }
+#     - { role: cinder, tags: cinder }
+- hosts: controller
+  tasks:  
+  - name: Discover compute hosts
+    shell: su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova

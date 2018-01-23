@@ -1,0 +1,9 @@
+- name: create the glance database
+  mysql_db: name=glance state=present
+
+- name: ensure glance database user is present
+  mysql_user: name=glance host={{ item }} password={{ glance_mysql_password }}  priv=glance.*:ALL
+  with_items:
+    - "%"
+    - "localhost"
+    - "controller"

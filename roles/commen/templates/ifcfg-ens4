@@ -1,0 +1,9 @@
+TYPE=Ethernet
+BOOTPROTO=static
+DEFROUTE=yes
+PEERDNS=yes
+PEERROUTES=yes
+NAME={{ pub_nic }
+DEVICE={{ pub_nic }}
+ONBOOT=yes
+BRIDGE=br-ex

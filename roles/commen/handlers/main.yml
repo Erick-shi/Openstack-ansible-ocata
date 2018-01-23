@@ -1,0 +1,20 @@
+---
+- name: restart pub_nic
+  shell: systemctl restart network;ifdown br-ex;ifup br-ex
+- name: restart iptables.service on contoller
+  service: name=iptables state=restarted enabled=yes
+- name: sysctl -p
+  shell: sysctl -p
+- name: restart chrony service
+  service: name=chronyd.service state=restarted enabled=yes
+- name: restart chrony service-clients
+  service: name=chronyd.service state=restarted enabled=yes
+
+- name: restart iptables.service on computes
+  service: name=iptables state=restarted enabled=yes
+- name: restart Pub_nic
+  shell: ifdown {{ pub_nic }} && ifup {{ pub_nic }};ifdown br-ex && ifup br-ex 
+- name: run the peer.sh
+  shell: sh /opt/peer.sh start
+- name: flush the yum
+  shell: yum clean all

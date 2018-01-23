@@ -1,0 +1,621 @@
+# Copyright (c) 2015 Hewlett-Packard Development Company, L.P.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import mock
+import warlock
+
+from neutronclient.common import exceptions as neutron_exceptions
+
+import shade
+from shade import _utils
+from shade import meta
+from shade.tests import fakes
+from shade.tests.unit import base
+
+PRIVATE_V4 = '198.51.100.3'
+PUBLIC_V4 = '192.0.2.99'
+PUBLIC_V6 = '2001:0db8:face:0da0:face::0b00:1c'  # rfc3849
+
+
+class FakeCloud(object):
+    region_name = 'test-region'
+    name = 'test-name'
+    private = False
+    force_ipv4 = False
+    service_val = True
+    _unused = "useless"
+    _local_ipv6 = True
+
+    def get_flavor_name(self, id):
+        return 'test-flavor-name'
+
+    def get_image_name(self, id):
+        return 'test-image-name'
+
+    def get_volumes(self, server):
+        return []
+
+    def has_service(self, service_name):
+        return self.service_val
+
+    def use_internal_network(self):
+        return True
+
+    def use_external_network(self):
+        return True
+
+    def get_internal_networks(self):
+        return []
+
+    def get_external_networks(self):
+        return []
+
+    def list_server_security_groups(self, server):
+        return []
+
+    def get_default_network(self):
+        return None
+
+standard_fake_server = fakes.FakeServer(
+    id='test-id-0',
+    name='test-id-0',
+    status='ACTIVE',
+    metadata={'group': 'test-group'},
+    addresses={'private': [{'OS-EXT-IPS:type': 'fixed',
+                            'addr': PRIVATE_V4,
+                            'version': 4}],
+               'public': [{'OS-EXT-IPS:type': 'floating',
+                           'addr': PUBLIC_V4,
+                           'version': 4}]},
+    flavor={'id': '101'},
+    image={'id': '471c2475-da2f-47ac-aba5-cb4aa3d546f5'},
+    accessIPv4='',
+    accessIPv6='',
+)
+
+SUBNETS_WITH_NAT = [
+    {
+        u'name': u'',
+        u'enable_dhcp': True,
+        u'network_id': u'5ef0358f-9403-4f7b-9151-376ca112abf7',
+        u'tenant_id': u'29c79f394b2946f1a0f8446d715dc301',
+        u'dns_nameservers': [],
+        u'ipv6_ra_mode': None,
+        u'allocation_pools': [
+            {
+                u'start': u'10.10.10.2',
+                u'end': u'10.10.10.254'
+            }
+        ],
+        u'gateway_ip': u'10.10.10.1',
+        u'ipv6_address_mode': None,
+        u'ip_version': 4,
+        u'host_routes': [],
+        u'cidr': u'10.10.10.0/24',
+        u'id': u'14025a85-436e-4418-b0ee-f5b12a50f9b4'
+    },
+]
+
+
+class TestMeta(base.TestCase):
+    def test_find_nova_addresses_key_name(self):
+        # Note 198.51.100.0/24 is TEST-NET-2 from rfc5737
+        addrs = {'public': [{'addr': '198.51.100.1', 'version': 4}],
+                 'private': [{'addr': '192.0.2.5', 'version': 4}]}
+        self.assertEqual(
+            ['198.51.100.1'],
+            meta.find_nova_addresses(addrs, key_name='public'))
+        self.assertEqual([], meta.find_nova_addresses(addrs, key_name='foo'))
+
+    def test_find_nova_addresses_ext_tag(self):
+        addrs = {'public': [{'OS-EXT-IPS:type': 'fixed',
+                             'addr': '198.51.100.2',
+                             'version': 4}]}
+        self.assertEqual(
+            ['198.51.100.2'], meta.find_nova_addresses(addrs, ext_tag='fixed'))
+        self.assertEqual([], meta.find_nova_addresses(addrs, ext_tag='foo'))
+
+    def test_find_nova_addresses_key_name_and_ext_tag(self):
+        addrs = {'public': [{'OS-EXT-IPS:type': 'fixed',
+                             'addr': '198.51.100.2',
+                             'version': 4}]}
+        self.assertEqual(
+            ['198.51.100.2'], meta.find_nova_addresses(
+                addrs, key_name='public', ext_tag='fixed'))
+        self.assertEqual([], meta.find_nova_addresses(
+            addrs, key_name='public', ext_tag='foo'))
+        self.assertEqual([], meta.find_nova_addresses(
+            addrs, key_name='bar', ext_tag='fixed'))
+
+    def test_find_nova_addresses_all(self):
+        addrs = {'public': [{'OS-EXT-IPS:type': 'fixed',
+                             'addr': '198.51.100.2',
+                             'version': 4}]}
+        self.assertEqual(
+            ['198.51.100.2'], meta.find_nova_addresses(
+                addrs, key_name='public', ext_tag='fixed', version=4))
+        self.assertEqual([], meta.find_nova_addresses(
+            addrs, key_name='public', ext_tag='fixed', version=6))
+
+    def test_get_server_ip(self):
+        srv = meta.obj_to_dict(standard_fake_server)
+        self.assertEqual(
+            PRIVATE_V4, meta.get_server_ip(srv, ext_tag='fixed'))
+        self.assertEqual(
+            PUBLIC_V4, meta.get_server_ip(srv, ext_tag='floating'))
+
+    @mock.patch.object(shade.OpenStackCloud, 'has_service')
+    @mock.patch.object(shade.OpenStackCloud, 'list_subnets')
+    @mock.patch.object(shade.OpenStackCloud, 'list_networks')
+    def test_get_server_private_ip(
+            self, mock_list_networks, mock_list_subnets, mock_has_service):
+        mock_has_service.return_value = True
+        mock_list_subnets.return_value = SUBNETS_WITH_NAT
+        mock_list_networks.return_value = [{
+            'id': 'test-net-id',
+            'name': 'test-net-name'
+        }]
+
+        srv = meta.obj_to_dict(fakes.FakeServer(
+            id='test-id', name='test-name', status='ACTIVE',
+            addresses={'private': [{'OS-EXT-IPS:type': 'fixed',
+                                    'addr': PRIVATE_V4,
+                                    'version': 4}],
+                       'public': [{'OS-EXT-IPS:type': 'floating',
+                                   'addr': PUBLIC_V4,
+                                   'version': 4}]}
+        ))
+
+        self.assertEqual(
+            PRIVATE_V4, meta.get_server_private_ip(srv, self.cloud))
+        mock_has_service.assert_called_with('network')
+        mock_list_networks.assert_called_once_with()
+
+    @mock.patch.object(shade.OpenStackCloud, 'list_subnets')
+    @mock.patch.object(shade.OpenStackCloud, 'list_server_security_groups')
+    @mock.patch.object(shade.OpenStackCloud, 'get_volumes')
+    @mock.patch.object(shade.OpenStackCloud, 'get_image_name')
+    @mock.patch.object(shade.OpenStackCloud, 'get_flavor_name')
+    @mock.patch.object(shade.OpenStackCloud, 'has_service')
+    @mock.patch.object(shade.OpenStackCloud, 'list_networks')
+    def test_get_server_private_ip_devstack(
+            self, mock_list_networks, mock_has_service,
+            mock_get_flavor_name, mock_get_image_name,
+            mock_get_volumes,
+            mock_list_server_security_groups,
+            mock_list_subnets):
+        mock_get_image_name.return_value = 'cirros-0.3.4-x86_64-uec'
+        mock_get_flavor_name.return_value = 'm1.tiny'
+        mock_has_service.return_value = True
+        mock_get_volumes.return_value = []
+        mock_list_subnets.return_value = SUBNETS_WITH_NAT
+        mock_list_networks.return_value = [
+            {
+                'id': 'test_pnztt_net',
+                'name': 'test_pnztt_net',
+                'router:external': False,
+            },
+            {
+                'id': 'private',
+                'name': 'private',
+            },
+        ]
+
+        srv = self.cloud.get_openstack_vars(meta.obj_to_dict(fakes.FakeServer(
+            id='test-id', name='test-name', status='ACTIVE',
+            flavor={u'id': u'1'},
+            image={
+                'name': u'cirros-0.3.4-x86_64-uec',
+                u'id': u'f93d000b-7c29-4489-b375-3641a1758fe1'},
+            addresses={u'test_pnztt_net': [{
+                u'OS-EXT-IPS:type': u'fixed',
+                u'addr': PRIVATE_V4,
+                u'version': 4,
+                u'OS-EXT-IPS-MAC:mac_addr':
+                u'fa:16:3e:ae:7d:42'
+            }]}
+        )))
+
+        self.assertEqual(PRIVATE_V4, srv['private_v4'])
+        mock_has_service.assert_called_with('volume')
+        mock_list_networks.assert_called_once_with()
+
+    @mock.patch.object(shade.OpenStackCloud, 'has_service')
+    @mock.patch.object(shade.OpenStackCloud, 'list_subnets')
+    @mock.patch.object(shade.OpenStackCloud, 'list_networks')
+    def test_get_server_external_ipv4_neutron(
+            self, mock_list_networks, mock_list_subnets,
+            mock_has_service):
+        # Testing Clouds with Neutron
+        mock_has_service.return_value = True
+        mock_list_subnets.return_value = []
+        mock_list_networks.return_value = [{
+            'id': 'test-net-id',
+            'name': 'test-net',
+            'router:external': True,
+        }]
+
+        srv = meta.obj_to_dict(fakes.FakeServer(
+            id='test-id', name='test-name', status='ACTIVE',
+            addresses={'test-net': [{
+                'addr': PUBLIC_V4,
+                'version': 4}]},
+        ))
+        ip = meta.get_server_external_ipv4(cloud=self.cloud, server=srv)
+
+        self.assertEqual(PUBLIC_V4, ip)
+
+    @mock.patch.object(shade.OpenStackCloud, 'has_service')
+    @mock.patch.object(shade.OpenStackCloud, 'list_subnets')
+    @mock.patch.object(shade.OpenStackCloud, 'list_networks')
+    def test_get_server_external_provider_ipv4_neutron(
+            self, mock_list_networks, mock_list_subnets,
+            mock_has_service):
+        # Testing Clouds with Neutron
+        mock_has_service.return_value = True
+        mock_list_subnets.return_value = SUBNETS_WITH_NAT
+        mock_list_networks.return_value = [{
+            'id': 'test-net-id',
+            'name': 'test-net',
+            'provider:network_type': 'vlan',
+            'provider:physical_network': 'vlan',
+        }]
+
+        srv = meta.obj_to_dict(fakes.FakeServer(
+            id='test-id', name='test-name', status='ACTIVE',
+            addresses={'test-net': [{
+                'addr': PUBLIC_V4,
+                'version': 4}]},
+        ))
+        ip = meta.get_server_external_ipv4(cloud=self.cloud, server=srv)
+
+        self.assertEqual(PUBLIC_V4, ip)
+
+    @mock.patch.object(shade.OpenStackCloud, 'has_service')
+    @mock.patch.object(shade.OpenStackCloud, 'list_subnets')
+    @mock.patch.object(shade.OpenStackCloud, 'list_networks')
+    def test_get_server_internal_provider_ipv4_neutron(
+            self, mock_list_networks, mock_list_subnets,
+            mock_has_service):
+        # Testing Clouds with Neutron
+        mock_has_service.return_value = True
+        mock_list_subnets.return_value = SUBNETS_WITH_NAT
+        mock_list_networks.return_value = [{
+            'id': 'test-net-id',
+            'name': 'test-net',
+            'router:external': False,
+            'provider:network_type': 'vxlan',
+            'provider:physical_network': None,
+        }]
+
+        srv = meta.obj_to_dict(fakes.FakeServer(
+            id='test-id', name='test-name', status='ACTIVE',
+            addresses={'test-net': [{
+                'addr': PRIVATE_V4,
+                'version': 4}]},
+        ))
+        self.assertIsNone(
+            meta.get_server_external_ipv4(cloud=self.cloud, server=srv))
+        int_ip = meta.get_server_private_ip(cloud=self.cloud, server=srv)
+
+        self.assertEqual(PRIVATE_V4, int_ip)
+
+    @mock.patch.object(shade.OpenStackCloud, 'has_service')
+    @mock.patch.object(shade.OpenStackCloud, 'list_subnets')
+    @mock.patch.object(shade.OpenStackCloud, 'list_networks')
+    def test_get_server_external_none_ipv4_neutron(
+            self, mock_list_networks, mock_list_subnets,
+            mock_has_service):
+        # Testing Clouds with Neutron
+        mock_has_service.return_value = True
+        mock_list_subnets.return_value = SUBNETS_WITH_NAT
+        mock_list_networks.return_value = [{
+            'id': 'test-net-id',
+            'name': 'test-net',
+            'router:external': False,
+        }]
+
+        srv = meta.obj_to_dict(fakes.FakeServer(
+            id='test-id', name='test-name', status='ACTIVE',
+            addresses={'test-net': [{
+                'addr': PUBLIC_V4,
+                'version': 4}]},
+        ))
+        ip = meta.get_server_external_ipv4(cloud=self.cloud, server=srv)
+
+        self.assertEqual(None, ip)
+
+    def test_get_server_external_ipv4_neutron_accessIPv4(self):
+        srv = meta.obj_to_dict(fakes.FakeServer(
+            id='test-id', name='test-name', status='ACTIVE',
+            accessIPv4=PUBLIC_V4))
+        ip = meta.get_server_external_ipv4(cloud=self.cloud, server=srv)
+
+        self.assertEqual(PUBLIC_V4, ip)
+
+    def test_get_server_external_ipv4_neutron_accessIPv6(self):
+        srv = meta.obj_to_dict(fakes.FakeServer(
+            id='test-id', name='test-name', status='ACTIVE',
+            accessIPv6=PUBLIC_V6))
+        ip = meta.get_server_external_ipv6(server=srv)
+
+        self.assertEqual(PUBLIC_V6, ip)
+
+    @mock.patch.object(shade.OpenStackCloud, 'has_service')
+    @mock.patch.object(shade.OpenStackCloud, 'list_subnets')
+    @mock.patch.object(shade.OpenStackCloud, 'list_networks')
+    @mock.patch.object(shade.OpenStackCloud, 'search_ports')
+    @mock.patch.object(meta, 'get_server_ip')
+    def test_get_server_external_ipv4_neutron_exception(
+            self, mock_get_server_ip, mock_search_ports,
+            mock_list_networks, mock_list_subnets,
+            mock_has_service):
+        # Testing Clouds with a non working Neutron
+        mock_has_service.return_value = True
+        mock_list_subnets.return_value = []
+        mock_list_networks.return_value = []
+        mock_search_ports.side_effect = neutron_exceptions.NotFound()
+        mock_get_server_ip.return_value = PUBLIC_V4
+
+        srv = meta.obj_to_dict(fakes.FakeServer(
+            id='test-id', name='test-name', status='ACTIVE'))
+        ip = meta.get_server_external_ipv4(cloud=self.cloud, server=srv)
+
+        self.assertEqual(PUBLIC_V4, ip)
+        self.assertTrue(mock_get_server_ip.called)
+
+    @mock.patch.object(shade.OpenStackCloud, 'has_service')
+    def test_get_server_external_ipv4_nova_public(
+            self, mock_has_service):
+        # Testing Clouds w/o Neutron and a network named public
+        mock_has_service.return_value = False
+
+        srv = meta.obj_to_dict(fakes.FakeServer(
+            id='test-id', name='test-name', status='ACTIVE',
+            addresses={'public': [{'addr': PUBLIC_V4, 'version': 4}]}))
+        ip = meta.get_server_external_ipv4(cloud=self.cloud, server=srv)
+
+        self.assertEqual(PUBLIC_V4, ip)
+
+    @mock.patch.object(shade.OpenStackCloud, 'has_service')
+    @mock.patch.object(meta, 'get_server_ip')
+    def test_get_server_external_ipv4_nova_none(
+            self, mock_get_server_ip, mock_has_service):
+        # Testing Clouds w/o Neutron and a globally routable IP
+        mock_has_service.return_value = False
+        mock_get_server_ip.return_value = None
+
+        srv = meta.obj_to_dict(fakes.FakeServer(
+            id='test-id', name='test-name', status='ACTIVE',
+            addresses={'test-net': [{'addr': PRIVATE_V4}]}))
+        ip = meta.get_server_external_ipv4(cloud=self.cloud, server=srv)
+
+        self.assertIsNone(ip)
+        self.assertTrue(mock_get_server_ip.called)
+
+    def test_get_server_external_ipv6(self):
+        srv = meta.obj_to_dict(fakes.FakeServer(
+            id='test-id', name='test-name', status='ACTIVE',
+            addresses={
+                'test-net': [
+                    {'addr': PUBLIC_V4, 'version': 4},
+                    {'addr': PUBLIC_V6, 'version': 6}
+                ]
+            }
+        ))
+        ip = meta.get_server_external_ipv6(srv)
+        self.assertEqual(PUBLIC_V6, ip)
+
+    def test_get_groups_from_server(self):
+        server_vars = {'flavor': 'test-flavor',
+                       'image': 'test-image',
+                       'az': 'test-az'}
+        self.assertEqual(
+            ['test-name',
+             'test-region',
+             'test-name_test-region',
+             'test-group',
+             'instance-test-id-0',
+             'meta-group_test-group',
+             'test-az',
+             'test-region_test-az',
+             'test-name_test-region_test-az'],
+            meta.get_groups_from_server(
+                FakeCloud(),
+                meta.obj_to_dict(standard_fake_server),
+                server_vars
+            )
+        )
+
+    def test_obj_list_to_dict(self):
+        """Test conversion of a list of objects to a list of dictonaries"""
+        class obj0(object):
+            value = 0
+
+        class obj1(object):
+            value = 1
+
+        list = [obj0, obj1]
+        new_list = meta.obj_list_to_dict(list)
+        self.assertEqual(new_list[0]['value'], 0)
+        self.assertEqual(new_list[1]['value'], 1)
+
+    @mock.patch.object(FakeCloud, 'list_server_security_groups')
+    def test_get_security_groups(self,
+                                 mock_list_server_security_groups):
+        '''This test verifies that calling get_hostvars_froms_server
+        ultimately calls list_server_security_groups, and that the return
+        value from list_server_security_groups ends up in
+        server['security_groups'].'''
+        mock_list_server_security_groups.return_value = [
+            {'name': 'testgroup', 'id': '1'}]
+
+        server = meta.obj_to_dict(standard_fake_server)
+        hostvars = meta.get_hostvars_from_server(FakeCloud(), server)
+
+        mock_list_server_security_groups.assert_called_once_with(server)
+        self.assertEqual('testgroup',
+                         hostvars['security_groups'][0]['name'])
+
+    @mock.patch.object(shade.meta, 'get_server_external_ipv6')
+    @mock.patch.object(shade.meta, 'get_server_external_ipv4')
+    def test_basic_hostvars(
+            self, mock_get_server_external_ipv4,
+            mock_get_server_external_ipv6):
+        mock_get_server_external_ipv4.return_value = PUBLIC_V4
+        mock_get_server_external_ipv6.return_value = PUBLIC_V6
+
+        hostvars = meta.get_hostvars_from_server(
+            FakeCloud(), _utils.normalize_server(
+                meta.obj_to_dict(standard_fake_server),
+                cloud_name='CLOUD_NAME',
+                region_name='REGION_NAME'))
+        self.assertNotIn('links', hostvars)
+        self.assertEqual(PRIVATE_V4, hostvars['private_v4'])
+        self.assertEqual(PUBLIC_V4, hostvars['public_v4'])
+        self.assertEqual(PUBLIC_V6, hostvars['public_v6'])
+        self.assertEqual(PUBLIC_V6, hostvars['interface_ip'])
+        self.assertEquals('REGION_NAME', hostvars['region'])
+        self.assertEquals('CLOUD_NAME', hostvars['cloud'])
+        self.assertEquals("test-image-name", hostvars['image']['name'])
+        self.assertEquals(standard_fake_server.image['id'],
+                          hostvars['image']['id'])
+        self.assertNotIn('links', hostvars['image'])
+        self.assertEquals(standard_fake_server.flavor['id'],
+                          hostvars['flavor']['id'])
+        self.assertEquals("test-flavor-name", hostvars['flavor']['name'])
+        self.assertNotIn('links', hostvars['flavor'])
+        # test having volumes
+        # test volume exception
+        self.assertEquals([], hostvars['volumes'])
+
+    @mock.patch.object(shade.meta, 'get_server_external_ipv6')
+    @mock.patch.object(shade.meta, 'get_server_external_ipv4')
+    def test_ipv4_hostvars(
+            self, mock_get_server_external_ipv4,
+            mock_get_server_external_ipv6):
+        mock_get_server_external_ipv4.return_value = PUBLIC_V4
+        mock_get_server_external_ipv6.return_value = PUBLIC_V6
+
+        fake_cloud = FakeCloud()
+        fake_cloud.force_ipv4 = True
+        hostvars = meta.get_hostvars_from_server(
+            fake_cloud, meta.obj_to_dict(standard_fake_server))
+        self.assertEqual(PUBLIC_V4, hostvars['interface_ip'])
+
+    @mock.patch.object(shade.meta, 'get_server_external_ipv4')
+    def test_private_interface_ip(self, mock_get_server_external_ipv4):
+        mock_get_server_external_ipv4.return_value = PUBLIC_V4
+
+        cloud = FakeCloud()
+        cloud.private = True
+        hostvars = meta.get_hostvars_from_server(
+            cloud, meta.obj_to_dict(standard_fake_server))
+        self.assertEqual(PRIVATE_V4, hostvars['interface_ip'])
+
+    @mock.patch.object(shade.meta, 'get_server_external_ipv4')
+    def test_image_string(self, mock_get_server_external_ipv4):
+        mock_get_server_external_ipv4.return_value = PUBLIC_V4
+
+        server = standard_fake_server
+        server.image = 'fake-image-id'
+        hostvars = meta.get_hostvars_from_server(
+            FakeCloud(), meta.obj_to_dict(server))
+        self.assertEquals('fake-image-id', hostvars['image']['id'])
+
+    def test_az(self):
+        server = standard_fake_server
+        server.__dict__['OS-EXT-AZ:availability_zone'] = 'az1'
+
+        hostvars = _utils.normalize_server(
+            meta.obj_to_dict(server),
+            cloud_name='', region_name='')
+        self.assertEquals('az1', hostvars['az'])
+
+    def test_has_volume(self):
+        mock_cloud = mock.MagicMock()
+
+        fake_volume = fakes.FakeVolume(
+            id='volume1',
+            status='available',
+            name='Volume 1 Display Name',
+            attachments=[{'device': '/dev/sda0'}])
+        fake_volume_dict = meta.obj_to_dict(fake_volume)
+        mock_cloud.get_volumes.return_value = [fake_volume_dict]
+        hostvars = meta.get_hostvars_from_server(
+            mock_cloud, meta.obj_to_dict(standard_fake_server))
+        self.assertEquals('volume1', hostvars['volumes'][0]['id'])
+        self.assertEquals('/dev/sda0', hostvars['volumes'][0]['device'])
+
+    def test_has_no_volume_service(self):
+        fake_cloud = FakeCloud()
+        fake_cloud.service_val = False
+        hostvars = meta.get_hostvars_from_server(
+            fake_cloud, meta.obj_to_dict(standard_fake_server))
+        self.assertEquals([], hostvars['volumes'])
+
+    def test_unknown_volume_exception(self):
+        mock_cloud = mock.MagicMock()
+
+        class FakeException(Exception):
+            pass
+
+        def side_effect(*args):
+            raise FakeException("No Volumes")
+        mock_cloud.get_volumes.side_effect = side_effect
+        self.assertRaises(
+            FakeException,
+            meta.get_hostvars_from_server,
+            mock_cloud,
+            meta.obj_to_dict(standard_fake_server))
+
+    def test_obj_to_dict(self):
+        cloud = FakeCloud()
+        cloud.server = standard_fake_server
+        cloud_dict = meta.obj_to_dict(cloud)
+        self.assertEqual(FakeCloud.name, cloud_dict['name'])
+        self.assertNotIn('_unused', cloud_dict)
+        self.assertNotIn('get_flavor_name', cloud_dict)
+        self.assertNotIn('server', cloud_dict)
+        self.assertTrue(hasattr(cloud_dict, 'name'))
+        self.assertEquals(cloud_dict.name, cloud_dict['name'])
+
+    def test_obj_to_dict_subclass(self):
+        class FakeObjDict(dict):
+            additional = 1
+        obj = FakeObjDict(foo='bar')
+        obj_dict = meta.obj_to_dict(obj)
+        self.assertIn('additional', obj_dict)
+        self.assertIn('foo', obj_dict)
+        self.assertEquals(obj_dict['additional'], 1)
+        self.assertEquals(obj_dict['foo'], 'bar')
+
+    def test_warlock_to_dict(self):
+        schema = {
+            'name': 'Test',
+            'properties': {
+                'id': {'type': 'string'},
+                'name': {'type': 'string'},
+                '_unused': {'type': 'string'},
+            }
+        }
+        test_model = warlock.model_factory(schema)
+        test_obj = test_model(
+            id='471c2475-da2f-47ac-aba5-cb4aa3d546f5',
+            name='test-image')
+        test_dict = meta.obj_to_dict(test_obj)
+        self.assertNotIn('_unused', test_dict)
+        self.assertEqual('test-image', test_dict['name'])
+        self.assertTrue(hasattr(test_dict, 'name'))
+        self.assertEquals(test_dict.name, test_dict['name'])

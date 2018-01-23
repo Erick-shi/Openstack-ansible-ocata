@@ -1,0 +1,45 @@
+
+
+- name: Create the glance user
+  os_user:
+    state: present
+    domain: default
+    name: "glance"
+    password: "{{ glance_pass }}"
+    update_password: on_create
+    default_project: admin
+- name: add galnce to admin role
+#  shell: source /root/admin-openrc && openstack role add --project service --user glance admin
+  os_user_role:
+    user: glance
+    role: admin
+    project: service
+- name: create the glance service
+  os_keystone_service:
+    state: present
+    name: glance
+    service_type: image
+    description: OpenStack Image
+  tags: glance-service
+
+- name: Create the Image service API endpoints
+  os_keystone_service_endpoint:
+    state: present
+    service: "glance"
+    interface: "public"
+    url: "http://controller:9292"
+    region: "RegionOne"
+- name: public url
+  os_keystone_service_endpoint:
+    state: present
+    service: "glance"
+    interface: "internal"
+    url: "http://controller:9292"
+    region: "RegionOne"
+- name: admin url
+  os_keystone_service_endpoint:
+    state: present
+    service: "glance"
+    interface: "admin"
+    url: "http://controller:9292"
+    region: "RegionOne"

@@ -1,0 +1,9 @@
+---
+- name: ensure keystone database is present
+  mysql_db: name=keystone state=present
+- name: ensure keystone database user is present
+  mysql_user: name=keystone host={{ item }} password={{ keystone_mysql_password }}  priv=keystone.*:ALL
+  with_items:
+    - "%"
+    - "localhost"
+    - "controller"

@@ -1,0 +1,7 @@
+pbr>=1.6
+six>=1.9.0
+stevedore>=1.10.0
+oslo.utils>=3.5.0
+os-client-config>=1.13.1
+keystoneauth1>=2.1.0
+iso8601>=0.1.11

@@ -1,0 +1,14 @@
+---
+- name: install chrony packets on server
+  yum: name=chrony state=latest
+- name: replace the /etc/chrony.conf on server
+  template: src=chrony.conf dest=/etc/chrony.conf mode=644
+  when: inventory_hostname in groups['controller']
+  notify: restart chrony service
+- name: install chrony packets on clients
+  yum: name=chrony state=latest
+- name: replace the /etc/chrony.conf on clients
+  template: src=chrony.conf-client dest=/etc/chrony.conf mode=644 
+  when: inventory_hostname not in groups['controller']
+  notify: restart chrony service-clients
+  

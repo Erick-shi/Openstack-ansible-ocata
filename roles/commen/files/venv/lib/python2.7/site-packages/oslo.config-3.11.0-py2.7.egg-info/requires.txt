@@ -1,0 +1,5 @@
+debtcollector>=1.2.0
+netaddr!=0.7.16,>=0.7.12
+six>=1.9.0
+stevedore>=1.10.0
+oslo.i18n>=2.1.0
