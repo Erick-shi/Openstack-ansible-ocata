@@ -1,0 +1,26 @@
+---
+- name: ensure nova database is present
+  mysql_db: name=nova state=present
+
+- name: ensure nova database user is present
+  mysql_user: name=nova host={{ item }} password={{ nova_mysql_password }}  priv=nova.*:ALL
+  with_items:
+    - "%"
+    - "localhost"
+    - "controller"
+
+- name: ensure nova_api database is present
+  mysql_db: name=nova_api state=present
+- name: ensure nova database user is present
+  mysql_user: name=nova host={{ item }} password={{ nova_mysql_password }}  priv=nova.*:ALL
+  with_items:
+    - "%"
+    - "localhost"
+    - "controller"
+
+- name: ensure  nova_cell0 database is present
+  mysql_db: name=nova_cell0 state=present
+- name: ensure nova_api  database user is present
+  shell: mysql -e "GRANT ALL PRIVILEGES ON nova_api.* TO 'nova'@'%';";mysql -e "GRANT ALL PRIVILEGES ON nova_api.* TO 'nova'@'localhost';"
+- name: ensure nova_cell0  database user is present
+  shell: mysql -e "GRANT ALL PRIVILEGES ON nova_cell0.* TO 'nova'@'%';";mysql -e "GRANT ALL PRIVILEGES ON nova_cell0.* TO 'nova'@'localhost';";mysql -e "GRANT ALL PRIVILEGES ON nova_cell0.* TO 'nova'@'controller';"
