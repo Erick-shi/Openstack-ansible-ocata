@@ -1,0 +1,33 @@
+---
+- name: Install the packages
+  yum: name=openstack-glance state=latest
+- name: replace the configuration
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: glance
+    group: glance
+  with_items:
+    - src: glance-api.conf.j2
+      dest: /etc/glance/glance-api.conf
+    - src: glance-registry.conf.j2
+      dest: /etc/glance/glance-registry.conf
+  notify: restart the glance service
+- name: Populate the Image service database
+  shell: su -s /bin/sh -c "glance-manage db_sync" glance
+- name: Start the Image services and configure them to start when the system boots
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+    - openstack-glance-api
+    - openstack-glance-registry
+- name: copy the cirros to all nodes
+  copy: src=cirros-0.3.4-x86_64-disk.img dest=/root
+- name: juged the cirros is uploud
+  shell: source /root/admin-openrc;openstack  image list|grep cirros
+  register: upload_image_result
+  ignore_errors: true
+- name: upload cirros image to the glance
+  shell: source /root/admin-openrc;openstack image create "cirros" --file /root/cirros-0.3.4-x86_64-disk.img  --disk-format qcow2 --container-format bare  --public
+  register: upload_image_result
+  when: upload_image_result|failed
+  tags: up_image
