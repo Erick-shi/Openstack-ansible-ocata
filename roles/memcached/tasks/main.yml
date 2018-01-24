@@ -1,0 +1,10 @@
+---
+- name: install memcached 
+  yum: "name={{ item }} state=latest disable_gpg_check=yes" 
+  with_items: 
+    - memcached 
+    - python-memcached
+
+- name: replace the configure
+  template: src=memcached dest=/etc/sysconfig/memcached 
+  notify: restart memcached

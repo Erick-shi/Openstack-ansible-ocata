@@ -1,0 +1,5 @@
+PORT="11211"
+USER="memcached"
+MAXCONN="8192"
+CACHESIZE="17198"
+OPTIONS="-l {{ mgmt }} -U 11211 -t 4 >> /var/log/memcached.log 2>&1"
