@@ -1,0 +1,70 @@
+###public###
+controller: "{{ groups['controller'] }}"
+###commen##
+
+
+# modify the ifcfg-nic-name must!
+br_ex_gw: 119.188.246.1
+br_ex_netmask: 255.255.255.0
+####
+ntp_server_server: 127.0.0.1
+allow_chrony_clients: 192.168.1.0/24
+
+## ceph_mon ###
+
+####rabbit###
+rabbitmq_user: openstack
+rabbitmq_user_pass: admin
+
+
+
+###keystone###
+keystone_mysql_password: admin
+
+### glance ###
+glance_pass: admin
+#glance database pass
+glance_mysql_password: admin
+# glance backend ceph  defualt is file if you want to use ceph . glance_stroe_type=ceph
+glance_stroe_type: file
+glance_ceph_user: glance
+glance_ceph_pool: images
+### nova #
+# nova database pass
+nova_mysql_password: admin
+# Openstack nova User id
+nova_user_id: nova
+# Openstack nova user pass
+nova_user_pass: admin
+# openstack placement user pass
+placement_pass: admin
+# compute cpu type
+libvirt_type: kvm
+# novnc url ip for compute nodes
+instance_vnc_ip: 192.168.1.206
+
+### neutron ####
+neutron_mysql_password: admin
+neutron_pass: admin
+metadata_proxy_shared_secret: admin
+controller_mgmt_ip: 192.168.1.10
+### cinder ##
+cinder_mysql_password: admin
+cinder_user_id: cinder
+cinder_user_pass: admin
+#
+cinder_ceph_pool: volumes
+cinder_ceph_user: cinder
+cinder_ceph_secret_uuid: qwer!@#$
+cinder_volume_type: ceph
+
+#secrete_ceph
+
+#### heat ##
+heat_mysql_password: admin
+heat_user_id: heat
+heat_user_pass: admin
+heat_domain_admin_pass: admin
+demo_user_id: demo
+demo_pass: demo
+
