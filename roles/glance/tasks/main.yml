@@ -1,5 +1,0 @@
----
-- include: create_database.yml
-- include: glance_base.yml
-  tags: glance_base
-- include: install.yml

@@ -1,4 +1,0 @@
----
-- include: compute/main.yml
-  tags: compute-nova
-  when: inventory_hostname in groups['compute']

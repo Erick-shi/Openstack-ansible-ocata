@@ -1,3 +1,0 @@
-- include: compute/main.yml
-  tags: neutron-compute
-  when: inventory_hostname in groups['compute']

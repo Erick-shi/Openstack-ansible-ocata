@@ -1,9 +1,0 @@
-- name: install mariadb 
-  yum: name={{ item }} state=latest
-  with_items: [mariadb,mariadb-server,python2-PyMySQL]
-- name: replace the mariadb configure and restart mariadb 
-  template: src=openstack.cnf  dest=/etc/my.cnf.d/openstack.cnf owner=mysql
-  notify:  restart mariadb-service with handlers
-  tags: mariadb_test
-- name: ensure mariadb service is up
-  service: name=mariadb state=started enabled=yes

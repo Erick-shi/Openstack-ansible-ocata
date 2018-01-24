@@ -1,7 +1,0 @@
-- name: decide the service project is create
-  shell: source /root/admin-openrc;openstack project list|grep service
-  register: project_service_result
-  ignore_errors: true
-- name: Create the service project
-  shell: sh /root/admin-openrc && openstack project create --domain default --description "Service Project" service
-  when: project_service_result|failed

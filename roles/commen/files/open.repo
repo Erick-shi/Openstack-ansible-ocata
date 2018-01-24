@@ -1,6 +1,0 @@
-[open]
-name=open
-baseurl=http://mirrors.163.com/centos/7.4.1708/cloud/x86_64/openstack-ocata/
-#baseurl=http://192.168.0.146/Openstack/open/
-gpgcheck=0
-enabled=1

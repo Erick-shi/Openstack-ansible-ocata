@@ -1,4 +1,0 @@
-- include: keystone_database.yml
-
-- include: install_keystone.yml
-- include: create_resource.yml

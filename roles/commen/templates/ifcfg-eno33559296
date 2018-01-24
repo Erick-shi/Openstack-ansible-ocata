@@ -1,7 +1,0 @@
-BOOTPROTO=none
-NAME={{ pub_nic }}
-DEVICE={{ pub_nic }}
-ONBOOT=yes
-DEVICETYPE=ovs
-OVS_BRIDGE=br-ex
-TYPE=OVSPort
