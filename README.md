@@ -26,15 +26,15 @@ Design Principles：
 >>                    |
 >>                
 >>       fetch hosts  |
->>                       _             | - { role: commen,tags: commen }           
->>            |          |               |  - { role: memcached,tags: memcached }     
->>                      |                  - { role: mariadb,tags: mariadb }        
+>>                                       |  - { role: commen,tags: commen }           
+>>            |         |                |  - { role: memcached,tags: memcached }     
+>>                      |                   - { role: mariadb,tags: mariadb }        
 >>            |                          |  - { role: rabbitmq, tags: rabbitmq }     
 >>                             controller   - { role: keystone, tags: keystone }    
 >>                       |       |       |  - { role: glance, tags: glance }          
 >>            |                  |          - { role: nova, tags: controller_nova }  
 >>                       |               |  - { role: controller_neutron, tags: controller_neutron }
->>            |                             - { role: dashboard, tags: dashboard }
+>>>            |                             - { role: dashboard, tags: dashboard }
 >> ansible-playbook siete.yml                        
 >>>                               |        
 >>                     |                  |         
