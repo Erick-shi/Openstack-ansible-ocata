@@ -1,0 +1,84 @@
+---
+- name: make sure the .ssh exist;
+  file: path=/root/.ssh state=directory mode=0700
+- name: configure the ssh-key
+  copy: src=authorized_keys dest=/root/.ssh/authorized_keys mode=600
+- name: disable selinux
+  shell: setenforce 0
+  ignore_errors: True
+- name: replace selinux
+  copy: src=selinux dest=/etc/sysconfig/selinux
+- name: ensure the yum is clean
+  shell: rm -rf /etc/yum.repos.d/*
+  ignore_errors: true
+- name: copy the yum.repo to controller node
+  copy: src={{ item }} dest=/etc/yum.repos.d/ mode=0644
+  with_items: [CentOS7-Base-163.repo,epel.repo,open.repo]
+  when: inventory_hostname in groups['controller']
+  notify: flush the yum
+- name: copy the yum.repo to compute node
+  copy: src={{ item }} dest=/etc/yum.repos.d/ mode=0644
+  with_items: [CentOS7-Base-163.repo,epel.repo,open.repo,lib.repo]
+  notify: flush the yum
+  when: inventory_hostname in groups['compute']
+#- name: install openvswitch
+#  yum: name=openvswitch state=latest
+#- name: start openvswitch service and start at up
+#  service: name=openvswitch state=started enabled=yes
+#- name: copy the ifcfg-{{ pub_nic }} to node
+#  template: src=ifcfg-eno33559296 dest=/etc/sysconfig/network-scripts/ifcfg-{{ pub_nic }} 
+#- name: copy the br-ex to node
+#  template: src=ifcfg-br-ex dest=/etc/sysconfig/network-scripts/ifcfg-br-ex
+#- name: restart the {{ pub_nic }} and br-ex
+#  shell: ifdown {{ pub_nic }} && ifdown br-ex && ifup br-ex &&  ifup {{ pub_nic }}
+
+
+
+#- name: install yum-utils
+#  yum: name=yum-utils state=latest
+#- name: copy vevn to contronller node
+#  unarchive: src=/etc/ansible/roles/commen/files/venv.tar.gz dest=/root
+- name: replace the sysctl.conf
+  copy: src=sysctl.conf dest=/etc/ mode=644
+  notify: sysctl -p
+- name: install iptables
+  yum: name={{ item }} state=latest
+  with_items: [iptables-services,iptables]
+- name: replace the iptables 
+  copy: src=iptables dest=/etc/sysconfig/iptables mode=644
+  when: inventory_hostname in groups['controller']
+  notify: restart iptables.service on contoller
+- name: install bridge-utils
+  yum: name=bridge-utils state=latest
+- name: replace the iptables for computes
+  copy: src=iptables-compute dest=/etc/sysconfig/iptables mode=644
+  when: inventory_hostname in groups['compute']
+  notify: restart iptables.service on computes
+- name: stop the NetworkManager with boot
+  service: name=NetworkManager state=stopped enabled=no
+- name: start network with boot
+  shell: /usr/sbin/chkconfig network on
+#- name: copy ifcfg-{{ pub_nic }} to nodes
+#  template: src=ifcfg-ens10 dest=/etc/sysconfig/network-scripts/ mode=644 
+#  when: inventory_hostname in groups['controller']
+#- name: copy br-ex configure to nodes
+#  template: src=ifcfg-br-ex dest=/etc/sysconfig/network-scripts/ mode=644
+#  when: inventory_hostname in groups['controller']
+#  notify: restart pub_nic
+#- name: copy peer.sh to controller nodes
+#  copy: src=peer.sh dest=/opt/ mode=755
+#  notify: run the peer.sh 
+#  when: inventory_hostname in groups['controller']
+#- name: make the peer.sh run with node start
+#  lineinfile:
+#    dest: /etc/rc.local
+#    regexp: '^touch'
+#    insertafter: '' 
+#    line: 'sh peer.sh start'
+#    mode: 0755
+#  when: inventory_hostname in groups['controller']
+- name: replace the hosts
+  copy: src=/etc/ansible/hosts_all_nodes dest=/etc/hosts mode=0644
+- name: install openstack packes
+  yum: name=python-openstackclient state=latest
+  when: inventory_hostname in groups['controller']

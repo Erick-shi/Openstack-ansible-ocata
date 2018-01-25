@@ -1,0 +1,17 @@
+AUTHORS
+ChangeLog
+LICENSE
+README.rst
+requirements.txt
+setup.cfg
+setup.py
+test-requirements.txt
+tox.ini
+requestsexceptions/__init__.py
+requestsexceptions.egg-info/PKG-INFO
+requestsexceptions.egg-info/SOURCES.txt
+requestsexceptions.egg-info/dependency_links.txt
+requestsexceptions.egg-info/not-zip-safe
+requestsexceptions.egg-info/pbr.json
+requestsexceptions.egg-info/requires.txt
+requestsexceptions.egg-info/top_level.txt

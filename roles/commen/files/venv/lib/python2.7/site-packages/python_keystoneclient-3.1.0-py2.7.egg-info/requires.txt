@@ -1,0 +1,12 @@
+pbr>=1.6
+iso8601>=0.1.11
+debtcollector>=1.2.0
+keystoneauth1>=2.1.0
+oslo.config>=3.9.0
+oslo.i18n>=2.1.0
+oslo.serialization>=1.10.0
+oslo.utils>=3.5.0
+positional>=1.0.1
+requests>=2.10.0
+six>=1.9.0
+stevedore>=1.10.0

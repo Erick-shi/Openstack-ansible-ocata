@@ -1,0 +1,40 @@
+Metadata-Version: 1.1
+Name: oslo.utils
+Version: 3.13.0
+Summary: Oslo Utility library
+Home-page: http://launchpad.net/oslo
+Author: OpenStack
+Author-email: openstack-dev@lists.openstack.org
+License: UNKNOWN
+Description: ==========
+        oslo.utils
+        ==========
+        
+        .. image:: https://img.shields.io/pypi/v/oslo.utils.svg
+            :target: https://pypi.python.org/pypi/oslo.utils/
+            :alt: Latest Version
+        
+        .. image:: https://img.shields.io/pypi/dm/oslo.utils.svg
+            :target: https://pypi.python.org/pypi/oslo.utils/
+            :alt: Downloads
+        
+        The oslo.utils library provides support for common utility type functions,
+        such as encoding, exception handling, string manipulation, and time handling.
+        
+        * Free software: Apache license
+        * Documentation: http://docs.openstack.org/developer/oslo.utils
+        * Source: http://git.openstack.org/cgit/openstack/oslo.utils
+        * Bugs: http://bugs.launchpad.net/oslo.utils
+        
+        
+Platform: UNKNOWN
+Classifier: Environment :: OpenStack
+Classifier: Intended Audience :: Information Technology
+Classifier: Intended Audience :: System Administrators
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4

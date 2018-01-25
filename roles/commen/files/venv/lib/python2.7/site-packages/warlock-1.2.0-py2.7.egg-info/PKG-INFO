@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: warlock
+Version: 1.2.0
+Summary: Python object model built on JSON schema and JSON patch.
+Home-page: http://github.com/bcwaldon/warlock
+Author: Brian Waldon
+Author-email: bcwaldon@gmail.com
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN

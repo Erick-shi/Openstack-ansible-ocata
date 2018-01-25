@@ -1,0 +1,3 @@
+[console_scripts]
+shade-inventory = shade.cmd.inventory:main
+

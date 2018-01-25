@@ -1,0 +1,13 @@
+[keystoneauth1.plugin]
+admin_token = keystoneauth1.loading._plugins.admin_token:AdminToken
+password = keystoneauth1.loading._plugins.identity.generic:Password
+token = keystoneauth1.loading._plugins.identity.generic:Token
+v2password = keystoneauth1.loading._plugins.identity.v2:Password
+v2token = keystoneauth1.loading._plugins.identity.v2:Token
+v3oauth1 = keystoneauth1.extras.oauth1._loading:V3OAuth1
+v3oidcaccesstoken = keystoneauth1.loading._plugins.identity.v3:OpenIDConnectAccessToken
+v3oidcauthcode = keystoneauth1.loading._plugins.identity.v3:OpenIDConnectAuthorizationCode
+v3oidcpassword = keystoneauth1.loading._plugins.identity.v3:OpenIDConnectPassword
+v3password = keystoneauth1.loading._plugins.identity.v3:Password
+v3token = keystoneauth1.loading._plugins.identity.v3:Token
+
