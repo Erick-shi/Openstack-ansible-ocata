@@ -21,10 +21,10 @@ Design Principles：
 
                              
 >>                            - group/all           控制变量文件 
->>                           |
+>>                          |
 >  ansible-playbook site.yml  
-                  |         |
-                 |
+>                 |         |
+>                 |
 >>             fetch hosts  |
 >>>                       _            | - { role: commen,tags: commen }           
                        |               |  - { role: memcached,tags: memcached }     
