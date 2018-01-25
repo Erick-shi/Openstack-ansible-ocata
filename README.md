@@ -35,8 +35,8 @@ Design Principles：
 >>            |                  |          - { role: nova, tags: controller_nova }  
 >>                       |               |  - { role: controller_neutron, tags: controller_neutron }
 >>            |                             - { role: dashboard, tags: dashboard }
->>> ansible-playbook siete.yml                        
->>                               |        
+>> ansible-playbook siete.yml                        
+>>>                               |        
 >>                     |                  |         
 >>                                          |
 >>                     |-roles |          | - { role: commen,tags: commen }  
