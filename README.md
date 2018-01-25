@@ -22,23 +22,23 @@ Design Principles：
 >                             
 >>                     - group/all           控制变量文件 
 >>                   |
->  
+>> 
 >>                    |
 >>                
->       fetch hosts  |
->                       _             | - { role: commen,tags: commen }           
-            |          |               |  - { role: memcached,tags: memcached }     
-                       |                  - { role: mariadb,tags: mariadb }        
-            |                          |  - { role: rabbitmq, tags: rabbitmq }     
-                             controller   - { role: keystone, tags: keystone }    
-                       |       |       |  - { role: glance, tags: glance }          
-            |                  |          - { role: nova, tags: controller_nova }  
-                       |               |  - { role: controller_neutron, tags: controller_neutron }
-            |                             - { role: dashboard, tags: dashboard }
+>>       fetch hosts  |
+>>                       _             | - { role: commen,tags: commen }           
+>>            |          |               |  - { role: memcached,tags: memcached }     
+>>                      |                  - { role: mariadb,tags: mariadb }        
+>>            |                          |  - { role: rabbitmq, tags: rabbitmq }     
+>>                             controller   - { role: keystone, tags: keystone }    
+>>                       |       |       |  - { role: glance, tags: glance }          
+>>            |                  |          - { role: nova, tags: controller_nova }  
+>>                       |               |  - { role: controller_neutron, tags: controller_neutron }
+>>            |                             - { role: dashboard, tags: dashboard }
 >> ansible-playbook siete.yml                        
-                               |        
+>>                               |        
 >>                     |                  |         
-                                          |
+>>                                          |
 >>                     |-roles |          | - { role: commen,tags: commen }  
 >>                               compute                                              
 >>                              |          | - { role: nova_compute, tags: compute_nova } 
