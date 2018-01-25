@@ -26,7 +26,7 @@ Design Principles：
 >>                    |
 >>                
 >>       fetch hosts  |
->>>                       _            | - { role: commen,tags: commen }           
+>>                       _             | - { role: commen,tags: commen }           
             |          |               |  - { role: memcached,tags: memcached }     
                        |                  - { role: mariadb,tags: mariadb }        
             |                          |  - { role: rabbitmq, tags: rabbitmq }     
@@ -37,9 +37,9 @@ Design Principles：
             |                             - { role: dashboard, tags: dashboard }
 > ansible-playbook siete.yml                        
                                |        
->>                       |                  |         
+>>                     |                  |         
                                           |
->>                      |-roles |          | - { role: commen,tags: commen }  
+>>                     |-roles |          | - { role: commen,tags: commen }  
 >>                               compute                                              
 >>                              |          | - { role: nova_compute, tags: compute_nova } 
 >>                                         |          
