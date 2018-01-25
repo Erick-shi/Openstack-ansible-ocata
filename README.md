@@ -21,8 +21,8 @@ Design Principles：
 
                              
 >                            - group/all           控制变量文件 
-                           |
-  ansible-playbook site.yml  
+>>                           |
+>>>  ansible-playbook site.yml  
                   |         |
                  |
              fetch hosts  |
