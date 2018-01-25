@@ -5,3 +5,10 @@
 - name: Create the service project
   shell: sh /root/admin-openrc && openstack project create --domain default --description "Service Project" service
   when: project_service_result|failed
+- name: decide user role is created
+  shell: source /root/admin-openrc;openstack role list|grep user
+  register: user_role_result
+  ignore_errors: true
+- name: create the user role
+  shell: source /root/admin-openrc;openstack role create user
+  when: user_role_result|failed
