@@ -1,0 +1,3 @@
+- name: restart memcache.service_and_httpd.service
+  service: name={{ item }} state=restarted
+  with_items: [httpd.service,memcached.service]

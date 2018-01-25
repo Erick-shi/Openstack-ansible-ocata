@@ -1,0 +1,8 @@
+---
+- name: install dashboard packages
+  yum: 'name=openstack-dashboard state=latest'
+- name: replace the local_settings
+  template: 'src=local_settings dest=/etc/openstack-dashboard/local_settings owner=apache group=apache'
+  notify: restart memcache.service_and_httpd.service 
+
+  
