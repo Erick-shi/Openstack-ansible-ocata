@@ -20,33 +20,33 @@ Design Principles：
 
 
 >>                             
->>                     - group/all           控制变量文件 
->>                   |
+>>                       - group/all           控制变量文件 
+>>                      |
 >> 
->>                    |
+>>                      |
 >>                
->>       fetch hosts  |
+>>       fetch hosts    |
 >>                                       |  - { role: commen,tags: commen }           
 >>            |         |                |  - { role: memcached,tags: memcached }     
 >>                      |                   - { role: mariadb,tags: mariadb }        
 >>            |                          |  - { role: rabbitmq, tags: rabbitmq }     
 >>                             controller   - { role: keystone, tags: keystone }    
->>                       |       |       |  - { role: glance, tags: glance }          
+>>                      |        |       |  - { role: glance, tags: glance }          
 >>            |                  |          - { role: nova, tags: controller_nova }  
->>                       |               |  - { role: controller_neutron, tags: controller_neutron }
->>           |                          |  - { role: dashboard, tags: dashboard }
+>>                      |                |  - { role: controller_neutron, tags: controller_neutron }
+>>           |                           |  - { role: dashboard, tags: dashboard }
 >ansible-playbook siete.yml                        
 >>                               |        
->>                     |                  |         
->>                                          |
->>                     |-roles |          | - { role: commen,tags: commen }  
+>>                      |                  |         
+>>                                         |
+>>                      |-roles  |         | - { role: commen,tags: commen }  
 >>                               compute                                              
->>                              |          | - { role: nova_compute, tags: compute_nova } 
+>>                               |         | - { role: nova_compute, tags: compute_nova } 
 >>                                         |          
 >>                                         | - { role: compute_neutron, tags: nova_neutron }               
 >>                                          
 >>                                       
->>                              | controller | shell: su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova 
+>>                               | controller | shell: su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova 
 >>
 
 
