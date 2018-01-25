@@ -1,0 +1,47 @@
+- name: Create the neutron  user
+  os_user:
+    state: present
+    domain: default
+    name: "neutron"
+    password: "{{ neutron_pass }}"
+    update_password: on_create
+    default_project: admin
+#  when: inventory_hostname == run_once_node 
+- name: add neutron to admin role
+  os_user_role:
+    user: neutron
+    role: admin
+    project: service
+#  when: inventory_hostname == run_once_node
+- name: create the neutron service 
+  os_keystone_service:
+    state: present
+    name: neutron
+    service_type: network
+    description: OpenStack Networking
+#  when: inventory_hostname == run_once_node
+- name: Create the Image service API endpoints
+  os_keystone_service_endpoint:
+    state: present
+    service: "neutron"
+    interface: "public"
+    url: "http://controller:9696"
+    region: "RegionOne" 
+#  when: inventory_hostname == run_once_node
+- name: public url
+  os_keystone_service_endpoint:
+    state: present
+    service: "neutron"
+    interface: "internal"
+    url: "http://controller:9696"
+    region: "RegionOne" 
+#  when: inventory_hostname == run_once_node
+- name: admin url
+  os_keystone_service_endpoint:
+    state: present
+    service: "neutron"
+    interface: "admin"
+    url: "http://controller:9696"
+    region: "RegionOne"
+#  when: inventory_hostname == run_once_node
+
