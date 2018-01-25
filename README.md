@@ -20,13 +20,13 @@ Design Principles：
 
 
                              
->                            - group/all           控制变量文件 
+>>                            - group/all           控制变量文件 
 >>                           |
->>>  ansible-playbook site.yml  
+>  ansible-playbook site.yml  
                   |         |
                  |
-             fetch hosts  |
-                       _            | - { role: commen,tags: commen }           
+>>             fetch hosts  |
+>>>                       _            | - { role: commen,tags: commen }           
                        |               |  - { role: memcached,tags: memcached }     
                        |                  - { role: mariadb,tags: mariadb }        
                                        |  - { role: rabbitmq, tags: rabbitmq }     
