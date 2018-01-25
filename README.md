@@ -20,8 +20,8 @@ Design Principles：
 
 
                              
->>                            - group/all           控制变量文件 
->>                          |
+>>>                           - group/all           控制变量文件 
+>>>                          |
 >  ansible-playbook site.yml  
 >                 |         |
 >                 |
