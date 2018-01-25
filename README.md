@@ -26,23 +26,23 @@ ansible-playbook site.yml  |
                  |         |
                  |
               fetch hosts  |
-                        _              | - { role: commen,tags: commen }           | commen 模块与为系统安装一些基础包并做一些基础配置
-                       |               | - { role: memcached,tags: memcached }     | memcache 模块d
-                       |                 - { role: mariadb,tags: mariadb }         | Mariadb 数据库安装
-                                       | - { role: rabbitmq, tags: rabbitmq }      | 消息对队列安装
-                             controller  - { role: keystone, tags: keystone }      | keystone 认证模块安装
-                       |       |       |  - { role: glance, tags: glance }          | 镜像模块
-                              |          - { role: nova, tags: controller_nova }   | 控制节点 nova模块安装
-                       |               |  - { role: controller_neutron, tags: controller_neutron }  | 控制节点 neutron模块安装
-                                         - { role: dashboard, tags: dashboard }          | dashboard 模块
+                        _              | - { role: commen,tags: commen }           
+                       |               | - { role: memcached,tags: memcached }     
+                       |                 - { role: mariadb,tags: mariadb }        
+                                       | - { role: rabbitmq, tags: rabbitmq }     
+                             controller  - { role: keystone, tags: keystone }    
+                       |       |       |  - { role: glance, tags: glance }          
+                              |          - { role: nova, tags: controller_nova }  
+                       |               |  - { role: controller_neutron, tags: controller_neutron } 
+                                         - { role: dashboard, tags: dashboard }          
                               |        
                        |                    |         
                                            |
-                       |-roles  |          | - { role: commen,tags: commen }  | 计算节点基础配置
+                       |-roles  |          | - { role: commen,tags: commen }  
                                 compute                                              
-                               |            | - { role: nova_compute, tags: compute_nova }  | 计算节点 nova模块安装
+                               |            | - { role: nova_compute, tags: compute_nova } 
                                            |          
-                                           | - { role: compute_neutron, tags: nova_neutron }  | 计算节点 neutron模块安装              
+                                           | - { role: compute_neutron, tags: nova_neutron }               
                                            
                                            |
                                | controller | shell: su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova 
