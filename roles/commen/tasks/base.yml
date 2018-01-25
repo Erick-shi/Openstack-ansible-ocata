@@ -21,16 +21,16 @@
   with_items: [CentOS7-Base-163.repo,epel.repo,open.repo,lib.repo]
   notify: flush the yum
   when: inventory_hostname in groups['compute']
-#- name: install openvswitch
-#  yum: name=openvswitch state=latest
-#- name: start openvswitch service and start at up
-#  service: name=openvswitch state=started enabled=yes
-#- name: copy the ifcfg-{{ pub_nic }} to node
-#  template: src=ifcfg-eno33559296 dest=/etc/sysconfig/network-scripts/ifcfg-{{ pub_nic }} 
-#- name: copy the br-ex to node
-#  template: src=ifcfg-br-ex dest=/etc/sysconfig/network-scripts/ifcfg-br-ex
-#- name: restart the {{ pub_nic }} and br-ex
-#  shell: ifdown {{ pub_nic }} && ifdown br-ex && ifup br-ex &&  ifup {{ pub_nic }}
+- name: install openvswitch
+  yum: name=openvswitch state=latest
+- name: start openvswitch service and start at up
+  service: name=openvswitch state=started enabled=yes
+- name: copy the ifcfg-{{ pub_nic }} to node
+  template: src=ifcfg-eno33559296 dest=/etc/sysconfig/network-scripts/ifcfg-{{ pub_nic }} 
+- name: copy the br-ex to node
+  template: src=ifcfg-br-ex dest=/etc/sysconfig/network-scripts/ifcfg-br-ex
+- name: restart the {{ pub_nic }} and br-ex
+  shell: ifdown {{ pub_nic }} && ifdown br-ex && ifup br-ex &&  ifup {{ pub_nic }}
 
 
 
