@@ -20,32 +20,34 @@ Design Principles：
 
 
                              
-                               - group/all           控制变量文件 
-                              |
-ansible-playbook site.yml --> |
-                 |             |
+                            - group/all           控制变量文件 
+                           |
+ansible-playbook site.yml  |
+                 |         |
                  |
-              fetch hosts      |
-                                                      | - { role: commen,tags: commen }           | commen 模块与为系统安装一些基础包并做一些基础配置
-                                                      | - { role: memcached,tags: memcached }     | memcache 模块d
-                              |                         - { role: mariadb,tags: mariadb }         | Mariadb 数据库安装
-                                                      | - { role: rabbitmq, tags: rabbitmq }      | 消息对队列安装
-                                            controller  - { role: keystone, tags: keystone }      | keystone 认证模块安装
-                              |            |          | - { role: glance, tags: glance }          | 镜像模块
-                              |                       | - { role: nova, tags: controller_nova }   | 控制节点 nova模块安装
-                                           |            - { role: controller_neutron, tags: controller_neutron }  | 控制节点 neutron模块安装
-                                                      | - { role: dashboard, tags: dashboard }          | dashboard 模块
-                              |         
-                                           |         
+              fetch hosts  |
+                        _              | - { role: commen,tags: commen }           | commen 模块与为系统安装一些基础包并做一些基础配置
+                       |               | - { role: memcached,tags: memcached }     | memcache 模块d
+                       |                 - { role: mariadb,tags: mariadb }         | Mariadb 数据库安装
+                                       | - { role: rabbitmq, tags: rabbitmq }      | 消息对队列安装
+                             controller  - { role: keystone, tags: keystone }      | keystone 认证模块安装
+                       |       |       |  - { role: glance, tags: glance }          | 镜像模块
+                              |          - { role: nova, tags: controller_nova }   | 控制节点 nova模块安装
+                       |               |  - { role: controller_neutron, tags: controller_neutron }  | 控制节点 neutron模块安装
+                                         - { role: dashboard, tags: dashboard }          | dashboard 模块
+                              |        
+                       |                    |         
                                            |
-                              |-roles-->   |          | - { role: commen,tags: commen }  | 计算节点基础配置
-                                            compute                                              
-                                          |            | - { role: nova_compute, tags: compute_nova }  | 计算节点 nova模块安装
+                       |-roles  |          | - { role: commen,tags: commen }  | 计算节点基础配置
+                                compute                                              
+                               |            | - { role: nova_compute, tags: compute_nova }  | 计算节点 nova模块安装
                                            |          
-                                                      | - { role: compute_neutron, tags: nova_neutron }  | 计算节点 neutron模块安装              
+                                           | - { role: compute_neutron, tags: nova_neutron }  | 计算节点 neutron模块安装              
                                            
                                            |
-                                           | controller | shell: su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova 
+                               | controller | shell: su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova 
+
+
 
 详细步骤：(注：要保证被部署节点有互联网)
 1、修改host-1 这个文件把控制节点的ip、用户、密码写入；修改hosts_all_nodes 把所有的计算节点和控制节点的ip对应关系填入，此文件将是 /etc/hosts 文件
