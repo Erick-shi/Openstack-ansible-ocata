@@ -4,7 +4,7 @@ Auther   Erick <br>
 环境介绍：<br>
 本次安装Openstack 版本为Ocata版；<br>
 Ansible版本： <br>
-[root@ansible ansible]# ansible --version 
+>[root@ansible ansible]# ansible --version 
 ansible 2.4.1.0
 config file = /etc/ansible/ansible.cfg
 configured module search path = [u'/etc/ansible/library']
