@@ -1,10 +1,10 @@
-## Openstack-ansible-ocata  
-#Auther   Erick
-##简介：
-#环境介绍：
-本次安装Openstack 版本为Ocata版；
-Ansible版本：
->[root@ansible ansible]# ansible --version
+## Openstack-ansible-ocata  <br>
+#Auther   Erick<br>
+##简介：<br>
+#环境介绍：<br>
+本次安装Openstack 版本为Ocata版；<br>
+Ansible版本： <br>
+>[root@ansible ansible]# ansible --version 
 >>ansible 2.4.1.0
 >>  config file = /etc/ansible/ansible.cfg
 >>  configured module search path = [u'/etc/ansible/library']
