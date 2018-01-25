@@ -2,15 +2,15 @@
 Auther   Erick <br>
 简介：<br>
 环境介绍：<br>
-本次安装Openstack 版本为Ocata版；<br>
-Ansible版本： <br>
+>本次安装Openstack 版本为Ocata版；<br>
+>Ansible版本： <br>
 >[root@ansible ansible]# ansible --version 
-ansible 2.4.1.0
-config file = /etc/ansible/ansible.cfg
-configured module search path = [u'/etc/ansible/library']
-ansible python module location = /usr/lib/python2.7/site-packages/ansible
-executable location = /usr/bin/ansible
-python version = 2.7.5 (default, Aug  4 2017, 00:39:18) [GCC 4.8.5 20150623 (Red Hat 4.8.5-16)]
+>ansible 2.4.1.0
+>config file = /etc/ansible/ansible.cfg
+>configured module search path = [u'/etc/ansible/library']
+>ansible python module location = /usr/lib/python2.7/site-packages/ansible
+>executable location = /usr/bin/ansible
+>python version = 2.7.5 (default, Aug  4 2017, 00:39:18) [GCC 4.8.5 20150623 (Red Hat 4.8.5-16)]
 
 操作系统版本： <br>
 目前测试过Centos7.2 和Centos7.2 均未有问题 <br>
