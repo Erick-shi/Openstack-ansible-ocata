@@ -25,7 +25,7 @@ Design Principles：
 >  
 >>                    |
 >>                
->>       fetch hosts  |
+>       fetch hosts  |
 >>                       _             | - { role: commen,tags: commen }           
             |          |               |  - { role: memcached,tags: memcached }     
                        |                  - { role: mariadb,tags: mariadb }        
