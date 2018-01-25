@@ -19,12 +19,12 @@ Design Principles：
 下面是整体的一个部署图：
 
 
-                             
+>                             
 >>>                           - group/all           控制变量文件 
 >>>                          |
 >  ansible-playbook site.yml  
->                 |         |
->                 |
+>>                 |         |
+>>                |
 >>             fetch hosts  |
 >>>                       _            | - { role: commen,tags: commen }           
                        |               |  - { role: memcached,tags: memcached }     
