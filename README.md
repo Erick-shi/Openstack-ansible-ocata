@@ -51,7 +51,7 @@ Design Principles： <br>
 >>
 
 
-详细步骤：(注：要保证被部署节点有互联网)
+详细步骤：(注：要保证被部署节点有互联网) <br>
 1、修改host-1 这个文件把控制节点的ip、用户、密码写入；修改hosts_all_nodes 把所有的计算节点和控制节点的ip对应关系填入，此文件将是 /etc/hosts 文件 <br>
 2、sh venv.sh  <br>
 3、修改hosts 文件： <br>
