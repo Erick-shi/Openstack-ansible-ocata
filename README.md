@@ -65,6 +65,8 @@ Design Principles： <br>
 部署完后，登陆地址为： br_ex_addr:/dashboard <br>
 登陆信息: default/admin/admin <br>
 
+——
+本项目持续更新<br>
 ---
 
 如有问题请联系shihy_happy@163.com 
