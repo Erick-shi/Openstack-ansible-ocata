@@ -1,4 +1,9 @@
----
+#- hosts: controller
+#  tasks: 
+#  - name: copy the venv to one controller node
+#    unarchive: "src=/etc/ansible/roles/commen/files/venv.tar.gz dest=/root mode=755"
+#  - name: chmod a+x /root/venv/bin/python
+#    shell: "chmod a+x /root/venv/bin/python"
 - name: install controller nodes roles
   hosts: controller
   vars:
@@ -23,6 +28,8 @@
       - { role: nova, tags: controller_nova }
       - { role: controller_neutron, tags: controller_neutron }
       - { role: dashboard, tags: dashboard }
+      - { role: cinder, tags: cinder }
+#      - { role: heat, tags: heat }
 - name: install compute nodes roles
   hosts: compute
   roles:

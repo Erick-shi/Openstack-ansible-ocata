@@ -1,0 +1,17 @@
+---
+- name: install cinder packets
+  yum: 'name=openstack-cinder state=latest'
+- name: replace /etc/cinder/cinder.conf 
+  template: 'src=cinder.conf dest=/etc/cinder/cinder.conf owner=root group=cinder mode=0640'
+  notify:
+    - Populate the cinder  database
+    - restart cinder service
+- name: replace nova.conf
+  template: 'src=nova.conf dest=/etc/nova/nova.conf owner=nova group=nova mode=0640'
+  notify: 
+    - restart nova-api.service
+
+#- name: Populate the cinder  database
+#  shell: su -s /bin/sh -c "cinder-manage db sync" cinder
+#  when: inventory_hostname == run_once_node
+#- name:  replace /etc/cinder/cinder.conf

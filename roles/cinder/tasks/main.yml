@@ -1,0 +1,3 @@
+---
+- include: controller/main.yml
+  when: inventory_hostname in groups['controller']

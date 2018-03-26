@@ -1,0 +1,72 @@
+- name: Create the cinder  user
+  os_user:
+    state: present
+    domain: default
+    name: "{{ cinder_user_id }}"
+    password: "{{ cinder_user_pass }}"
+    update_password: on_create
+    default_project: admin
+- name: add neutron to admin role
+  os_user_role:
+    user: cinder
+    role: admin
+    project: service
+- name: create the cinder service 
+  os_keystone_service:
+    state: present
+    name: cinder
+    service_type: volume
+    description: OpenStack Block Storage
+- name: create the cinderv2 service 
+  os_keystone_service:
+    state: present
+    name: cinderv2
+    service_type: volumev2
+    description: OpenStack Block Storage
+
+- name: Create the cinder  service API endpoints
+  os_keystone_service_endpoint:
+    state: present
+    service: "cinder"
+    interface: "public"
+    url: "http://controller:8776/v1/%(tenant_id)s"
+    region: "RegionOne" 
+- name: public url
+  os_keystone_service_endpoint:
+    state: present
+    service: "cinder"
+    interface: "internal"
+    url: "http://controller:8776/v1/%(tenant_id)s"
+    region: "RegionOne" 
+- name: admin url
+  os_keystone_service_endpoint:
+    state: present
+    service: "cinder"
+    interface: "admin"
+    url: "http://controller:8776/v1/%(tenant_id)s"
+    region: "RegionOne"
+
+- name: Create the cinder volumev2   service API endpoints
+  os_keystone_service_endpoint:
+    state: present
+    service: "cinderv2"
+    interface: "public"
+    url: "http://controller:8776/v2/%(tenant_id)s"
+    region: "RegionOne"
+
+- name: cinder volumev2 public url
+  os_keystone_service_endpoint:
+    state: present
+    service: "cinderv2"
+    interface: "internal"
+    url: "http://controller:8776/v2/%(tenant_id)s"
+    region: "RegionOne"
+
+- name: cinder volumev2 admin url
+  os_keystone_service_endpoint:
+    state: present
+    service: "cinderv2"
+    interface: "admin"
+    url: "http://controller:8776/v2/%(tenant_id)s"
+    region: "RegionOne"
+

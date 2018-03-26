@@ -1,0 +1,15 @@
+- name: Populate the cinder  database
+  shell: su -s /bin/sh -c "cinder-manage db sync" cinder
+- name: restart cinder service
+  service: 'name={{ item }} state=restarted enabled=yes'
+  with_items:
+    - openstack-cinder-api.service
+    - openstack-cinder-scheduler.service
+    - openstack-cinder-volume.service
+    - httpd
+    - memcached
+- name: restart nova-api.service
+  service: 'name=openstack-nova-api.service state=restarted enabled=yes'
+- name: restart nova_and_libvirt_service
+  service: 'name={{ item }} state=restarted enabled=yes'
+  with_items: [libvirtd.service,openstack-nova-compute.service]
