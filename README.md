@@ -13,7 +13,7 @@ executable location = /usr/bin/ansible <br>
 >python version = 2.7.5 (default, Aug  4 2017, 00:39:18) [GCC 4.8.5 20150623 (Red Hat 4.8.5-16)] <br>
 
 操作系统版本： <br>
-目前测试过Centos7.2 和Centos7.2 均未有问题 <br>
+目前测试过Centos7.2 和Centos7.4 均未有问题 <br>
 Design Principles： <br>
 支持单Controller 节点和多计算节点；支持单/双/三/网卡，网络为ovs模型； <br>
 本次部署是用Ansible 批量部署，具有幂等性，所以可以重复执行； <br>
